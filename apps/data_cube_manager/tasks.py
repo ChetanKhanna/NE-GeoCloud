@@ -66,12 +66,22 @@ def update_data_cube_details(ingested_only=True):
 
     dc = DataAccessApi(config='/home/' + settings.LOCAL_USER + '/Datacube/NE-GeoCloud/config/.datacube.conf')
 
-    for dataset_type in dataset_types:
-        ingestion_details, created = IngestionDetails.objects.get_or_create(
-            dataset_type_ref=dataset_type.id,
-            product=dataset_type.name,
-            platform=dataset_type.metadata['platform']['code'])
-        ingestion_details.update_with_query_metadata(dc.get_datacube_metadata(dataset_type.name))
+    # for dataset_type in dataset_types:
+    #     ingestion_details, created = IngestionDetails.objects.get_or_create(
+    #         dataset_type_ref=dataset_type.id,
+    #         product=dataset_type.name,
+    #         platform=dataset_type.metadata['platform']['code'])
+    #     ingestion_details.update_with_query_metadata(dc.get_datacube_metadata(dataset_type.name))
+    print(dataset_types.values())
+    print(type(dataset_types.values()))
+    dataset_type = dataset_types[2]
+    print(dataset_type)
+    print(type(dataset_type))
+    ingestion_details, created = IngestionDetails.objects.get_or_create(
+        dataset_type_ref=dataset_type.id,
+        product=dataset_type.name,
+        platform=dataset_type.metadata['platform']['code'])
+    ingestion_details.update_with_query_metadata(dc.get_datacube_metadata(dataset_type.name))
 
     dc.close()
 

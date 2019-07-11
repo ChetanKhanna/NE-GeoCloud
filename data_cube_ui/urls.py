@@ -56,4 +56,4 @@ urlpatterns = [
     url(r'^accounts/', include('apps.accounts.urls')),
     url(r'^', include('apps.pages.urls')),
 ] + static(
-    settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

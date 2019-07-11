@@ -10,7 +10,7 @@
 	<br><br>
 	<div class = 'row'>
 
-		{% for app in apps %}
+		<!-- {% for app in apps %}
 			<div class="col s12 m6 l4">
 			    <div class="card hoverable">
 			      <div class="card-image waves-effect waves-light">
@@ -22,8 +22,40 @@
 			        
 			    </div>
 		  	</div>
-		{% endfor %}
-
+		{% endfor %} -->
+			<div class="col s12 m6 l4">
+			    <div class="card hoverable">
+			      <div class="card-image waves-effect waves-light">
+			        <a href = '/urbanization/region_selection'> <img src="/static/assets/media/band.png">
+			        
+			        <p class="card-title-2">Band Math Algorithms</p>				        		        
+			        </a>              			        
+			      </div>
+			        
+			    </div>
+		  	</div>
+		  	<div class="col s12 m6 l4">
+			    <div class="card hoverable">
+			      <div class="card-image waves-effect waves-light">
+			        <a href = '/fractional_cover/region_selection'> <img src="/static/assets/media/land.jpg">
+			        
+			        <p class="card-title-2">Land Cover Classification</p>				        		        
+			        </a>              			        
+			      </div>
+			        
+			    </div>
+		  	</div>
+		  	<div class="col s12 m6 l4">
+			    <div class="card hoverable">
+			      <div class="card-image waves-effect waves-light">
+			        <a href = '/cloud_coverage/region_selection'> <img src="/static/assets/media/cloudfree.png">
+			        
+			        <p class="card-title-2">Cloud Free Mosaic</p>				        		        
+			        </a>              			        
+			      </div>
+			        
+			    </div>
+		  	</div>
 					<!-- <div class="col s12 m6 l4">
 					    <div class="card hoverable">
 					      <div class="card-image waves-effect waves-light">
@@ -39,6 +71,39 @@
 	</div>
 </div>
 
+<footer class="page-footer light-blue darken-3">
+    <div class="container">
+      <div class="row">
+        <div class="col l6 s12">
+          <h5 class="white-text">Company Bio</h5>
+          <p class="grey-text text-lighten-4">This application is designed for scientists who need to run applications on satellite data for analysis. <br> </p>
 
+
+        </div>
+        <div class="col l3 s12">
+          <h5 class="white-text">Settings</h5>
+          <ul>
+            <li><a class="white-text" href="#!">Link 1</a></li>
+            <li><a class="white-text" href="#!">Link 2</a></li>
+            <li><a class="white-text" href="#!">Link 3</a></li>
+            <li><a class="white-text" href="#!">Link 4</a></li>
+          </ul>
+        </div>
+        <div class="col l3 s12">
+          <h5 class="white-text">Our Team</h5>
+          <ul>
+            <li><a class="white-text" href="#!">Sivaramakrishnan K N</a></li>
+            <li><a class="white-text" href="#!">Shreyash Chaudhary</a></li>
+            <li><a class="white-text" href="#!">Chetan Khanna</a></li>
+            <li><a class="white-text" href="#!">Nrupesh Surya U</a></li>
+            <li><a class="white-text" href="#!">Garvit Soni</a></li>
+            <li><a class="white-text" href="#!">Vaibhav Chaudhary</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-copyright">
+    </div>
+</footer>
 
 {% endblock %}

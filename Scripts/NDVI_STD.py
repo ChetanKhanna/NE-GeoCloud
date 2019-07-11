@@ -162,7 +162,7 @@ dataset
 # In[ ]:
 
 
-'exec(%matplotlib inline)'
+exec(%matplotlib inline)
 import matplotlib.pyplot as plt
 import seaborn as sns
 from utils.data_cube_utilities.dc_mosaic import ls7_unpack_qa

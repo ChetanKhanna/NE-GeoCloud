@@ -23,7 +23,8 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views import View
 from django.apps import apps
-
+import json
+from django.template.loader import render_to_string
 from apps.data_cube_manager import models
 from apps.dc_algorithm import forms
 
@@ -50,6 +51,7 @@ class ToolClass:
     """
 
     tool_name = None
+    tool_id = None
     tool_inputs = 0
     task_model_name = None
     tool_satellites = None
@@ -86,8 +88,10 @@ class DataCubeVisualization(ToolClass, View):
 
         context = {'form': form,
                     'tool_name': self.tool_name,
+                    'tool_id': self.tool_id,
                 }
         return render(request, 'dc_algorithm/visualization.html', context)
+
 
 class GetIngestedAreas(View):
     """Get a dict containing details on the ingested areas, grouped by Platform"""
@@ -115,3 +119,17 @@ class GetIngestedAreas(View):
 
         return JsonResponse(ingested_area_details)
 
+
+def post(self, request):
+
+    if request.method == 'POST':
+        if 'lat_min' in request.POST:
+            print(request.POST)
+            params = request.POST['postdata']
+            ingestion_data = params['ingestion_data']
+            # cmd = 'python apps/cloud_coverage/cloud_coverage.py' + coords_arr[0] + coords_arr[1] + coords_arr[2] + coords_arr[5] ingestion_data
+            # p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+            return render(request, 'dc_algorithm/output.html', params)
+    else:
+        return HttpResponseBadRequest('Only POST requests are allowed')
+    

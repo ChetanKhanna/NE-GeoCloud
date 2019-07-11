@@ -53,7 +53,7 @@
 
 # In[1]:
 
-from IPython import get_ipython
+    
 import numpy
 import datacube
 dc = datacube.Datacube(app = 'my_app', config = '/home/localuser/.datacube.conf')

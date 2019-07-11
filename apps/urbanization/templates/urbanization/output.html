@@ -1,0 +1,38 @@
+{% extends "default.html" %}
+{% load static %}
+{% block css %}
+{% endblock %}
+
+{% block javascript %}
+{% endblock %}
+
+{% block content %}
+
+<div class="container valign-wrapper">
+	<div class="row">
+		
+		<h2>OUTPUT</h2>
+		Minimum latitude: {{ lat_min }} <br>
+		Maximum latitude: {{ lat_max }} <br>
+		Minimum longitude: {{ long_min }} <br>
+		Maximum longitude: {{ long_max }} <br>
+		Product: {{ product }} <br>
+		Platform: {{ platform }} <br>
+		Start date: {{ start_date }} <br>
+		End date: {{ end_date }} <br>
+		<br>
+		{{ out }}
+		<br>
+		{% if err != None %}
+			{{ err }}
+		{% endif %}
+		<div>
+			    <img src="{% static 'assets/results/urbanization/false_color.png' %}" alt="bg" class="img-responsive"/>
+			    <img src="{% static 'assets/results/urbanization/cloud_free_mosaic.png' %}" alt="bg" class="img-responsive"/>
+		</div>
+
+<!-- 		{{ platform }}
+		{{ product }} -->
+	</div>
+</div>
+{% endblock %}

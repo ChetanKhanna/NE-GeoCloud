@@ -1,4 +1,5 @@
 {% extends "default.html" %} {% load bootstrap3 %}
+{% load static %}
 <!--
     Copyright 2016 United States Government as represented by the Administrator
     of the National Aeronautics and Space Administration. All Rights Reserved.
@@ -44,9 +45,11 @@
   $('.collapsible-header').on("click", function(){
     $("#id_start_date_1").val($("#hi").val());
   })
+
   $('.dropdown-trigger').dropdown();
   $('select').formSelect();
   $('.scrollspy').scrollSpy();
+  $('select').formSelect();
   });
 
 </script>
@@ -56,7 +59,7 @@
 {% block content %}
 <div class="container">
     <div class="row">
-        <div class="col l3" style="overflow:auto; max-height: 90vh;">
+        <div class="col l3" style="overflow:auto; max-height: 100vh;">
             <div class="col l12">
 
                 <h4 class="page-header">{{tool_name}}</h4>
@@ -68,7 +71,7 @@
                     <ul class="collapsible popout" >
                     {% for f in form %}
 
-                        <li>
+                        <li class="active">
                             <div class="collapsible-header"><i class="material-icons">map</i>Product {{forloop.counter}}</div>
                             <div class="collapsible-body">
 
@@ -77,7 +80,19 @@
                         </li>
                     {% endfor %}
                     </ul>
-                    <div class="range-field">
+                    {% if tool_id == "urbanization"%}
+                    <div class="input-field col s12 m6" >
+                      <select class="icons" id="indices">
+                        <!-- <option value="" disabled selected></option> -->
+                        <option value="NDVI" data-icon="/static/assets/media/ndvi.png">NDVI</option>
+                        <option value="NDWI" data-icon="/static/assets/media/ndwi.png">NDWI</option>
+                        <option value="NDBI" data-icon="/static/assets/media/ndbi.png">NDBI</option>
+                        <option value="false_color" data-icon="/static/assets/media/false_color.png">Urbanisation</option>
+                      </select>
+                      <label>Select Index</label>
+                    </div>
+                    {% endif %}
+                    <!-- <div class="range-field">
                       <label for="hyperparameter_1">Hyperparameter 1</label>
                           <input type="range" id="hyperparameter_1" min="0" max="100">
                     </div>
@@ -89,7 +104,7 @@
                       <label for="hyperparameterl_1">Hyperparameter 3</label>
                           <input type="range" id="hyperparameter_3" min="0" max="100">
                     </div>
-
+ -->
 
 
                 </form>
@@ -113,12 +128,29 @@
                             <div id="info_map" class="card col s8" style="height: 50vh"></div>
                         </div>
                     </div>
-
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-dismiss="modal">Submit</button>
-            </div>
+    		<form method='POST' action='output/' id="form">
+    		{% csrf_token %}        
+	            <div class="modal-footer container">
+	            	<input type="hidden" id='lat_min'  name='lat_min' />
+	            	<input type="hidden" id='lat_max'  name='lat_max' />
+	            	<input type="hidden" id='long_min' name='long_min' />
+	            	<input type="hidden" id='long_max' name='long_max' />
+	            	<input type="hidden" id='platform' name='platform' />
+	            	<input type="hidden" id='product'  name='product' />
+	            	<input type="hidden" id='start_date' name='start_date' />
+	            	<input type="hidden" id='end_date' name='end_date' />
+                <input type="hidden" id='index' name='index' />
+		            <div class="progress col l11 valign" id="loading">
+                  <div class="indeterminate">                    
+                  </div>
+                </div>
+                <div>
+                  <button type="submit" class="btn btn-danger modal-close" id="submit" data-dismiss="modal">Submit</button>
+                </div>
+		        </div>
+	        </form>
         </div>
     </div>
 
@@ -133,6 +165,19 @@
   var unHighlightDiv = '#ffffff';
   var highlightLayer = '#ff0000';
   var unHighlightLayer = '#ff0000';
+  var ingestion_data = undefined;
+  var obj = {}
+  function load_ingested_areas() {
+    jQuery.get('{% url "get_ingested_areas" %}', {}, function(result) {
+        if(result.status == "ERROR") {
+          set_modal_content("Error", result.message);
+          return;
+        } else {
+          ingestion_data = result
+          add_ingested_areas(ingestedAreaLayerGroups, ingestion_data);
+        }
+    });
+  }
 
   $(function() {
       $('.datepicker').datepicker({
@@ -154,45 +199,68 @@
         noWrap: true,
         attribution: 'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
       });
+      
+              
 
 
       map = new L.Map('map', {
-        minZoom: 3,
-        maxZoom: 6,
-        zoomSnap: 0.25,
+        minZoom: 1,
+        maxZoom: 14,
+        zoomSnap: 1,
       });
       info_map = new L.Map('info_map', {
         zoomSnap: 0.25,
       });
-      var drawnItems = new L.FeatureGroup();
-     info_map.addLayer(drawnItems);
-     var drawControl = new L.Control.Draw({
-         draw: {
-             polygon: false,
-             marker: false,
-             circle: false,
-             polyline: false
-         },
-         edit: {
-             featureGroup: drawnItems
-         }
-     });
-     info_map.addControl(drawControl);
-     info_map.on('draw:created', function (e) {
+     //  var drawnItems = new L.FeatureGroup();
+     // info_map.addLayer(drawnItems);
+     // var bounds = [[7.74554387426788, -3.51367040230697], [9.6171837687319, 1.42886029092127]];
+     // var drawControl = new L.Control.Draw({
+     //     draw: {
+     //         polygon: false,
+     //         marker: false,
+     //         circle: false,
+     //         polyline: false
+     //     },
+     //     edit: {
+     //         featureGroup: drawnItems
+     //     }
+     // });
+     // info_map.addControl(drawControl);
+//      info_map.on('draw:created', function (e) {
 
-    var type = e.layerType,
-        layer = e.layer;
+    
+//     var type = e.layerType,
+//         layer = e.layer;
 
-    if (type === 'rectangle') {
-        layer.on('mouseover', function() {
-            var coordinates = layer.getLatLngs().slice();
-            alert(coordinates[0][1]);
-        });
-    }
+//     if (type === 'rectangle') {
+//         layer.on('mouseover', function() {
+//             var coordinates = layer.getLatLngs();
+//             var numbers = /[+-]?\d+(?:\.\d+)?/g;
+//             var coords_arr = [];
+//             var i=0;
+//             while (i<8) {
+//                   coords_arr[i]=numbers.exec(coordinates);
+//                   i++;
+//                 }
 
-    drawnItems.addLayer(layer);
+//             if((coords_arr[0]<ingestion_data[key][0]['latitude_min'])||(coords_arr[1]<ingestion_data[key][0]['longitude_min'])||(coords_arr[2]>ingestion_data[key][0]['latitude_max'])||(coords_arr[5]>ingestion_data[key][0]['longitude_max'])){
+//               alert("Please limit within the ingested area which is highlighted as the red one.");
+//               info_map.removeLayer(layer);
+//             }
 
-});
+//             obj['lat_min'] = coords_arr[0];
+//             obj['long_min'] = coords_arr[1];
+//             obj['lat_max'] = coords_arr[2];
+//             obj['long_max'] = coords_arr[5];
+
+
+//         });
+//     }
+
+
+//     drawnItems.addLayer(layer);
+
+// });
 
 
 
@@ -209,23 +277,49 @@
         [-60, -180],
         [85, 180]
       ]);
+      var rectangle = L.rectangle([
+      [91.59504758135645, 26.0458036530795],
+      [91.59504758135645, 26.191008603233865],
+      [91.922408007187, 26.191008603233865],
+      [91.922408007187, 26.0458036530795]
+    ], {
+      color: unHighlightLayer
+    });
 
+
+
+
+
+    // Add rectangle to map in the modal popup.
+    rectangle.addTo(map);
       load_ingested_areas();
       initialize_map_listeners();
+      // imageUrl = "{% static 'assets/results/urbanization/false_color.png' %}";
+      // imageBounds = [[8,-3.5],[8.5,-2.5]];
+      // L.imageOverlay(imageUrl, imageBounds).addTo(map);
 
   });
 
-  var ingestion_data = undefined;
-  function load_ingested_areas() {
-    jQuery.get('{% url "get_ingested_areas" %}', {}, function(result) {
-        if(result.status == "ERROR") {
-          set_modal_content("Error", result.message);
-          return;
-        } else {
-          ingestion_data = result
-          add_ingested_areas(ingestedAreaLayerGroups, ingestion_data);
-        }
+  function rekt(){
+
+    var rectangle = L.rectangle([
+      [26.0458036530795, 91.59504758135645],
+      [26.191008603233865, 91.59504758135645],
+      [26.191008603233865, 91.922408007187],
+      [26.0458036530795, 91.922408007187]
+    ], {
+      color: unHighlightLayer
     });
+
+
+
+
+
+    // Add rectangle to map in the modal popup.
+    rectangle.addTo(map);
+    rectangle.addTo(info_map);
+
+
   }
 
   function update_shown_cubes(i) {
@@ -262,6 +356,7 @@
           endInputYear > Date.parse(layerIdDateRange[id][1]))
     }
 
+
     switch(platform_input) {
       case "All":
         for (key in ingestion_data) {
@@ -271,6 +366,10 @@
             }
           }
         }
+      break;
+      case "Sentinel":
+        rekt();
+
       break;
       default:
         for (layerId in ingestedAreaLayerGroups[platform_input]._layers) {
@@ -336,6 +435,7 @@
   function activate_layer(layer) {
     layer.setStyle({
       fillColor: highlightLayer,
+      fillOpacity: 0,
       color: highlightLayer
     });
     $('#' + layer._leaflet_id).css('background-color', highlightDiv);
@@ -345,7 +445,8 @@
   function deactivate_layer(layer) {
     layer.setStyle({
       fillColor: unHighlightLayer,
-      color: unHighlightLayer
+      color: unHighlightLayer,
+      fillOpacity: 0.1
     });
     $('#' + layer._leaflet_id).css('background-color', unHighlightDiv);
   }
@@ -383,8 +484,14 @@
   // Display the modal equivalent with data for the DIV.
 
   function displayModal(id, key, index) {
+    $('#loading').hide();
     var query_string = jQuery.param(ingestion_data[key][index]);
+    obj['platform'] = key
+    obj['product'] = ingestion_data[key][index]['product']
+    obj['start_date'] = ingestion_data[key][index]['start_date']
+    obj['end_date'] = ingestion_data[key][index]['end_date']
     var additional_information = `
+
     <div class="card col l12" style="overflow:auto; max-height: 50vh;">
       <dl>
         <dt style="text-align:left;">Satellite: <a style="text-align:right;">` + key.replace('_', ' ') + `</a></dt>
@@ -409,6 +516,8 @@
         <br>
       </dl>
     </div>
+    
+
     `;
 
     jQuery("#info_table").html(additional_information);
@@ -443,6 +552,52 @@
 
         // Add rectangle to map in the modal popup.
         rectangle.addTo(info_map);
+        var drawnItems = new L.FeatureGroup();
+     info_map.addLayer(drawnItems);
+     var bounds = [[7.74554387426788, -3.51367040230697], [9.6171837687319, 1.42886029092127]];
+     var drawControl = new L.Control.Draw({
+         draw: {
+             polygon: false,
+             marker: false,
+             circle: false,
+             polyline: false
+         },
+         edit: {
+             featureGroup: drawnItems
+         }
+     });
+     info_map.addControl(drawControl);
+        info_map.on('draw:created', function (e) {
+    
+        var type = e.layerType,
+            layer = e.layer;
+
+        if (type === 'rectangle') {
+            layer.on('mouseover', function() {
+                var coordinates = layer.getLatLngs();
+                var numbers = /[+-]?\d+(?:\.\d+)?/g;
+                var coords_arr = [];
+                var i=0;
+                while (i<8) {
+                      coords_arr[i]=numbers.exec(coordinates);
+                      i++;
+                    }
+
+                if((coords_arr[0]<ingestion_data[key][index]['latitude_min'])||(coords_arr[1]<ingestion_data[key][index]['longitude_min'])||(coords_arr[2]>ingestion_data[key][index]['latitude_max'])||(coords_arr[5]>ingestion_data[key][index]['longitude_max'])){
+                  alert("Please limit within the ingested area which is highlighted as the red one.");
+                  info_map.removeLayer(layer);
+                }
+
+                obj['lat_min'] = coords_arr[0];
+                obj['long_min'] = coords_arr[1];
+                obj['lat_max'] = coords_arr[2];
+                obj['long_max'] = coords_arr[5];
+
+            });
+        }
+
+        drawnItems.addLayer(layer);
+      });
 
     }, 250);
 
@@ -522,6 +677,99 @@
       jQuery("#dialog_modal").modal('hide');
   }
 
+  function submitForm(){
+    var data = obj;
+    $("#lat_min").val(data['lat_min']);
+    $("#lat_max").val(data['lat_max']);
+    $("#long_min").val(data['long_min']);
+    $("#long_max").val(data['long_max']);
+    $("#product").val(data['product']);
+    $("#platform").val(data['platform']);
+    $("#start_date").val(data['start_date']);
+    $("#end_date").val(data['end_date']);  
+    $("#index").val($("#indices").val());
+  	}
+  var form = $('#form');
+
+  form.submit(function(e) {
+    submitForm();
+
+    e.preventDefault(); // avoid to execute the actual submit of the form.
+
+    var url = form.attr('action');
+    // var index = $("#index").val();
+    // var formData = {
+    //      'lat_min' :  $("#lat_min").val(),
+    //      'lat_max' :  $("#lat_max").val(),
+    //      'long_min' :  $("#long_min").val(),
+    //       'long_max':  $("#long_max").val(),
+    //       'product':  $("#product").val(),
+    //       'platform':  $("#platform").val(),
+    //       'start_date':  $("#start_date").val(),
+    //       'end_date':  $("#end_date").val(),
+    //       'index': "NDVI"
+    //     };
+
+    // $('#info_modal').closeModal();
+    $('#loading').show();
+    // alert($("#indices").val());
+    $.ajax({
+           type: form.attr('method'),
+           url: url,
+           data: form.serialize(), // serializes the form's elements.
+           dataType: "json",
+           cache : false,
+           async: false,
+           success: function(response){
+            
+            tool = "{{ tool_id }}";
+            // alert(tool)
+            
+            data = response[0];
+            imageUrl = data.image;  
+            
+            imageBounds = [[data.lat_min, data.long_min], [data.lat_max, data.long_max]];
+            
+            if (tool == "fractional_cover") {
+              imageBounds = [[26.0458036530795, 91.59504758135645], [26.191008603233865, 91.922408007187]];
+              L.imageOverlay(imageUrl, imageBounds).addTo(map);
+              map.fitBounds(imageBounds);
+            }
+            else {
+              var lyr = L.tileLayer('/{{ tool_id }}/{z}/{x}/{y}', {tms: true, opacity: 1, attribution: 'map data', minZoom: 4, maxZoom: 14});
+              lyr.addTo(map);
+              map.fitBounds(imageBounds);
+            }
+              // map.eachLayer(function (layer) {
+              //     map.removeLayer(layer);
+              // });
+
+              // map.addLayer(osm);
+
+              
+              // L.imageOverlay(imageUrl, imageBounds).addTo(map);
+
+              map.fitBounds(imageBounds);
+              
+           },
+           error: function(XMLHttpRequest, textStatus, errorThrown) { 
+                    alert("Status: " + data); 
+                    alert("Error: " + errorThrown); 
+            }
+         });
+
+
+});
+
+
+
+
+  // $(document).ready(function(){
+  //   $('#submit').click(function(){
+  //       submitForm();
+
+  //   });
+  // });
 
 </script>
 {% endblock %}
